@@ -355,6 +355,49 @@ mywait(int* _status)
   }
 }
 
+
+int waitpid(int pid, int *status, int options)
+{
+  struct proc *p;
+  int waitproc;
+
+  acquire(&ptable.lock);
+  //int* status = (int*)(&aChar);
+  for(;;)
+  {
+    waitproc = 0;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    {
+      //Look for process id
+      if(p->pid != pid)
+        continue;
+      waitproc = 1; 
+      
+      if(p->wcount < sizeof(p->wpid))
+      {
+        p->wpid[p->wcount] = proc;
+        p->wcount++;
+      }
+      
+      if(p->state == ZOMBIE)
+      {
+          // Found one.
+          pid = p->pid;
+          kfree(p->kstack);
+          p->kstack = 0;
+          freevm(p->pgdir);
+          p->state = UNUSED;
+          p->pid = 0;
+          p->parent = 0;
+          p->name[0] = 0;
+          p->killed = 0;
+          release(&ptable.lock);
+          return pid;
+      }
+    }
+  }  
+}
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
