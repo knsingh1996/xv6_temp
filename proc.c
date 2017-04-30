@@ -363,39 +363,44 @@ int waitpid(int pid, int *status, int options)
 
   acquire(&ptable.lock);
   //int* status = (int*)(&aChar);
-  for(;;)
-  {
-    waitproc = 0;
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    {
-      //Look for process id
-      if(p->pid != pid)
-        continue;
-      waitproc = 1; 
-      
-      if(p->wcount < sizeof(p->wpid))
-      {
-        p->wpid[p->wcount] = proc;
-        p->wcount++;
-      }
-      
-      if(p->state == ZOMBIE)
-      {
-          // Found one.
-          pid = p->pid;
-          kfree(p->kstack);
-          p->kstack = 0;
-          freevm(p->pgdir);
-          p->state = UNUSED;
-          p->pid = 0;
-          p->parent = 0;
-          p->name[0] = 0;
-          p->killed = 0;
-          release(&ptable.lock);
-          return pid;
-      }
+   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if(p->pid != pid)
+      continue;
+    else {
+      found = 1;
+      break;
     }
-  }  
+  }
+  if (!found) {
+    release(&ptable.lock);
+    if (status)
+      *status = -1;
+    return -1;
+  } else {
+    for (;;) {
+      if(p->state == ZOMBIE) {
+        kfree(p->kstack);
+        p->kstack = 0;
+        if (!p->isthread)
+          freevm(p->pgdir);
+        p->state = UNUSED;
+        p->pid = 0;
+        p->parent = 0;
+        p->name[0] = 0;
+        p->killed = 0;
+        if (status)
+          *status = p->exitstatus;
+        release(&ptable.lock);
+        return(pid);
+      } else if (p->state == UNUSED) {
+        if (status)
+          *status = p->exitstatus;
+        release(&ptable.lock);
+        return(pid);
+	  }
+      sleep(p, &ptable.lock);
+    }
+  }
 }
 
 //PAGEBREAK: 42
