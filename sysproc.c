@@ -41,12 +41,30 @@ sys_wait(void)
 int
 sys_mywait(void)
 {
-  int _stat;
+  int* _stat;
 
-  if(argint(0, &_stat) < 0)
+  if(argptr(0, (char **) &_stat, sizeof(int*)) < 0)
     return -1;
 
-  return mywait(&_stat);
+  return mywait(_stat);
+}
+
+int
+sys_waitpid(void)
+{
+  int* _stat;
+  int _pid, _options;
+
+  if(argint(0, &_pid) < 0)
+    return -1;
+
+  if(argptr(1, (char **) &_stat, sizeof(int*)) < 0)
+    return -1;
+
+  if(argint(2, &_options) < 0)
+    return -1;
+
+  return waitpid(_pid, _stat, _options);
 }
 
 int
@@ -77,6 +95,15 @@ sys_sbrk(void)
   if(growproc(n) < 0)
     return -1;
   return addr;
+}
+
+int
+sys_setpriority(void)
+{
+  int _priority;
+  if(argint(0, &_priority) < 0)
+    return -1;
+  return setpriority(_priority);
 }
 
 int

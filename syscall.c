@@ -89,12 +89,14 @@ extern int sys_kill(void);
 extern int sys_link(void);
 extern int sys_myexit(void);
 extern int sys_mywait(void);
+extern int sys_waitpid(void);
 extern int sys_mkdir(void);
 extern int sys_mknod(void);
 extern int sys_open(void);
 extern int sys_pipe(void);
 extern int sys_read(void);
 extern int sys_sbrk(void);
+extern int sys_setpriority(void);
 extern int sys_sleep(void);
 extern int sys_unlink(void);
 extern int sys_wait(void);
@@ -125,6 +127,8 @@ static int (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 [SYS_myexit]  sys_myexit,
 [SYS_mywait]  sys_mywait,
+[SYS_waitpid] sys_waitpid,
+[SYS_setpriority] sys_setpriority,
 };
 
 void

@@ -113,9 +113,11 @@ void            pinit(void);
 void            procdump(void);
 void            scheduler(void) __attribute__((noreturn));
 void            sched(void);
+int             setpriority(int);
 void            sleep(void*, struct spinlock*);
 void            userinit(void);
 int             wait(void);
+int             waitpid(int pid, int *status, int options);
 void            wakeup(void*);
 void            yield(void);
 

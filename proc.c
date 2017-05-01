@@ -359,47 +359,47 @@ mywait(int* _status)
 int waitpid(int pid, int *status, int options)
 {
   struct proc *p;
-  int waitproc;
+  int haveKids = 0;
 
   acquire(&ptable.lock);
-  //int* status = (int*)(&aChar);
+
    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
     if(p->pid != pid)
       continue;
     else {
-      found = 1;
+      haveKids = 1;
       break;
     }
   }
-  if (!found) {
-    release(&ptable.lock);
-    if (status)
-      *status = -1;
-    return -1;
-  } else {
+
+  if (haveKids) {
     for (;;) {
       if(p->state == ZOMBIE) {
         kfree(p->kstack);
         p->kstack = 0;
-        if (!p->isthread)
-          freevm(p->pgdir);
+        freevm(p->pgdir);
         p->state = UNUSED;
         p->pid = 0;
         p->parent = 0;
         p->name[0] = 0;
         p->killed = 0;
         if (status)
-          *status = p->exitstatus;
+          *status = p->status;
         release(&ptable.lock);
         return(pid);
       } else if (p->state == UNUSED) {
         if (status)
-          *status = p->exitstatus;
+          *status = p->status;
         release(&ptable.lock);
         return(pid);
 	  }
       sleep(p, &ptable.lock);
     }
+  } else {
+    release(&ptable.lock);
+    if (status)
+      *status = -1;
+    return -1;
   }
 }
 
@@ -420,10 +420,23 @@ scheduler(void)
     // Enable interrupts on this processor.
     sti();
 
-    // Loop over process table looking for process to run.
+    // Loop over process table looking for process to run, trying to find a
+    // process with the lowest priority.
     acquire(&ptable.lock);
+
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+
+      int min_priority = 999;
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state != RUNNABLE)
+          continue;
+        if(p->priority < min_priority)
+          min_priority = p->priority;
+      }
+
       if(p->state != RUNNABLE)
+        continue;
+      if(p->priority != min_priority)
         continue;
 
       // Switch to chosen process.  It is the process's job
@@ -477,6 +490,19 @@ yield(void)
   proc->state = RUNNABLE;
   sched();
   release(&ptable.lock);
+}
+
+int
+setpriority(int _priority)
+{
+  if(_priority < 0)
+    proc->priority = 0;
+  else if(_priority > 63)
+    proc->priority = 63;
+  else
+    proc->priority = _priority;
+
+  return proc->priority;
 }
 
 // A fork child's very first scheduling by scheduler()
