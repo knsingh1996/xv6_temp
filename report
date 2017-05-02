@@ -1,0 +1,11 @@
+The files we changed are
+
+proc.c
+proc.h
+syscall.c
+syscall.h
+sysproc.c
+usys.S
+user.h
+defs.h
+lab1.c
