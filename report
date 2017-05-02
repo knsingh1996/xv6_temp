@@ -1,4 +1,4 @@
-The files we changed are
+The files we changed are: 
 
 proc.c
 proc.h
@@ -9,3 +9,8 @@ usys.S
 user.h
 defs.h
 lab1.c
+
+
+For each file, we had to add the system call to each file, and add the code for the scheduler, waitpid, mywait and myexit.
+
+We had to add all the definitions in the .h files, and added all the code in the .c files. proc.c contained most of the code.
