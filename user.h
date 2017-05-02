@@ -4,7 +4,11 @@ struct rtcdate;
 // system calls
 int fork(void);
 int exit(void) __attribute__((noreturn));
+int myexit(int);
 int wait(void);
+int mywait(int*);
+int waitpid(int, int*, int);
+int setpriority(int);
 int pipe(int*);
 int write(int, void*, int);
 int read(int, void*, int);
