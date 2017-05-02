@@ -415,6 +415,7 @@ void
 scheduler(void)
 {
   struct proc *p;
+  struct proc *temp;
 
   for(;;){
     // Enable interrupts on this processor.
@@ -427,11 +428,11 @@ scheduler(void)
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 
       int min_priority = 999;
-      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-        if(p->state != RUNNABLE)
+      for(temp = ptable.proc; temp < &ptable.proc[NPROC]; temp++){
+        if(temp->state != RUNNABLE)
           continue;
-        if(p->priority < min_priority)
-          min_priority = p->priority;
+        if(temp->priority < min_priority)
+          min_priority = temp->priority;
       }
 
       if(p->state != RUNNABLE)
