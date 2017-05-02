@@ -117,7 +117,7 @@ int waitPid(void){
 	if (pid > 0 ) {
 		continue;}
 	else if ( pid == 0) {
-//		printf(1, "\n Hello! this is child# %d and I will change my priority to %d \n",getpid(),60-20*i);
+		//printf(1, "\n Hello! this is child# %d and I will change my priority to %d \n",getpid(),60-20*i);
 		setpriority(60-20*i);
 		for (j=0;j<50000;j++) {
 			for(k=0;k<10000;k++) {

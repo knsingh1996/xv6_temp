@@ -264,7 +264,12 @@ myexit(int _status)
         wakeup1(initproc);
     }
   }
-  p->status = _status;
+  proc->status = _status;
+
+  // Jump into the scheduler, never to return.
+  proc->state = ZOMBIE;
+  sched();
+  panic("zombie exit");
 }
 
 // Wait for a child process to exit and return its pid.
@@ -425,20 +430,21 @@ scheduler(void)
     // process with the lowest priority.
     acquire(&ptable.lock);
 
+    int min_priority = 999;
+    for(temp = ptable.proc; temp < &ptable.proc[NPROC]; temp++){
+      if(temp->state != RUNNABLE)
+        continue;
+      if(temp->priority < min_priority)
+        min_priority = temp->priority;
+    }
+
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 
-      int min_priority = 999;
-      for(temp = ptable.proc; temp < &ptable.proc[NPROC]; temp++){
-        if(temp->state != RUNNABLE)
-          continue;
-        if(temp->priority < min_priority)
-          min_priority = temp->priority;
-      }
 
       if(p->state != RUNNABLE)
         continue;
       if(p->priority != min_priority)
-        continue;
+         continue;
 
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
